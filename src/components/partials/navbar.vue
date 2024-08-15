@@ -36,7 +36,7 @@
             </div>
           <a class="dropdown-item" href="#">
             <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYOB6GkyxctiwfJieHOvgp9ohwOV2jUg32jA&s"  class="rounded-circle border me-2">
-            <div> <b>Jasmin James</b> sent you a friend Request.</div>
+            <div> <b>Andrew tate</b> sent you a friend Request.</div>
           </a>
        
       
@@ -70,7 +70,7 @@
           >
           <a class="dropdown-item d-flex align-items-center" href="#">
             <span class="navbar-items me-2"
-              ><font-awesome-icon :icon="['fas', 'comment']"
+              ><font-awesome-icon :icon="['fas', 'comment-dots']"
             /></span>
             Give Feedback</a
           >

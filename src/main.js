@@ -8,10 +8,10 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 /* import specific icons */
-import { faMessage,faBell,faMagnifyingGlass,faChevronDown,faArrowRightFromBracket,faComment,faGear,faUser,faImage,faFaceSmile,faPersonRunning,faXmark } from '@fortawesome/free-solid-svg-icons'
+import { faMessage,faBell,faMagnifyingGlass,faChevronDown,faArrowRightFromBracket,faComment,faGear,faUser,faImage,faFaceSmile,faPersonRunning,faXmark,faThumbsUp,faShare,faMagnifyingGlassPlus,faMagnifyingGlassMinus,faChevronLeft,faChevronRight,faCopy,faUsers,faMaximize,faUserPlus,faCommentDots,faCamera,faPen,faSuitcase,faHome,faLocationDot,faTrash,faEarthAmerica,faLock,faGraduationCap,faHeart,faPhone } from '@fortawesome/free-solid-svg-icons'
 
 /* add icons to the library */
-library.add(faMessage,faBell,faMagnifyingGlass,faChevronDown,faArrowRightFromBracket,faComment,faGear,faUser,faImage,faFaceSmile,faPersonRunning,faXmark)
+library.add(faMessage,faBell,faMagnifyingGlass,faChevronDown,faArrowRightFromBracket,faComment,faGear,faUser,faImage,faFaceSmile,faPersonRunning,faXmark,faThumbsUp,faShare,faMagnifyingGlassPlus,faMagnifyingGlassMinus,faChevronLeft,faChevronRight,faCopy,faUsers,faMaximize,faUserPlus,faCommentDots,faCamera,faPen,faSuitcase,faHome,faLocationDot,faTrash,faEarthAmerica,faLock,faGraduationCap,faHeart,faPhone)
 const app = createApp(App)
 app.component('font-awesome-icon', FontAwesomeIcon)
 app.mount('#app')

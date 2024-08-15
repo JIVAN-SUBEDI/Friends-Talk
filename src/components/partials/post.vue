@@ -12,35 +12,86 @@
           />
           <div class="d-flex flex-column">
             <span>
-              Jasmine James
-              <span>&ThickSpace;is celebrating Birthday. </span>
+              {{
+                post.userDetails.firstName +
+                " " +
+                post.userDetails.middleName +
+                " " +
+                post.userDetails.lastName
+              }}
+              <span>&ThickSpace;is {{ post.activity }} </span>
             </span>
             <span class="text-secondary"> 24h ago </span>
           </div>
         </div>
       </div>
       <div class="mt-4">
-        <div :class="{ 'text-truncate-after-8': !expanded }" ref="textContainer">
-
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam, nesciunt provident qui minus aspernatur quibusdam temporibus odit alias quas perspiciatis. Earum soluta veritatis distinctio nisi delectus temporibus similique ducimus molestiae reiciendis iste enim id minima rerum, ea corporis esse cumque qui voluptas ab atque cupiditate voluptate exercitationem neque. Ut optio amet, magnam totam iusto molestias odio velit voluptatibus numquam labore facilis odit, quo laborum quis sequi similique animi quos reiciendis officiis quisquam mollitia, doloribus vitae? Doloribus iure similique, cupiditate tempore repellat dolores id assumenda labore soluta, totam sequi quod quae blanditiis aut dolor. Voluptas beatae sit laudantium, sequi reiciendis amet iusto dicta aspernatur officia architecto quam exercitationem dolor odio impedit esse cumque voluptates nostrum facere ea a consequatur. Optio aspernatur cupiditate iusto architecto illum similique ducimus laudantium dolorum dolorem aliquid minima odio, debitis voluptas fuga nemo totam a labore deleniti ipsum. Maxime accusamus accusantium impedit, consequuntur ipsam alias molestias laboriosam soluta blanditiis repellat tempora at corrupti esse temporibus fuga distinctio porro perspiciatis a mollitia odio perferendis dolorum incidunt itaque! Doloribus, quisquam quae! Velit fuga rerum facere, minima animi, nostrum dolor officia totam laborum maxime explicabo debitis repellat accusamus quos facilis ratione a quo! Voluptas doloremque illum veritatis, molestias tempore et.
+        <div
+          :class="{ 'text-truncate-after-8': !expanded }"
+          ref="textContainer"
+        >
+          {{ post.desc }}
         </div>
-        <a href="#" @click.prevent="toggleText">
-      {{ expanded ? 'See Less' : 'See More' }}
-    </a>
+        <!-- Conditionally render the button based on text overflow -->
+        <a v-if="isOverflowing" href="#" @click.prevent="toggleText">
+          {{ expanded ? "See Less" : "See More" }}
+        </a>
       </div>
-      <div class="mt-2" :class="{'single-image': post.images.length === 1, 'image-grid': post.images.length > 1}">
-    <img v-for="(image, index) in post.images" :key="index" :src="image" :alt="'Image ' + (index + 1)" />
-  </div>
+
+      <div
+        class="image-gallery"
+        :class="{ 'multiple-image': imageContainerClass }"
+      >
+        <a
+          @click="passImage"
+          data-bs-toggle="modal"
+          data-bs-target="#imageModal"
+          v-for="(image, index) in post.images"
+          :key="image"
+          :style="{
+            height: getImageHeight + 'rem',
+            width: getImageWidth(index),
+          }"
+        >
+          <img :src="image" class="image" />
+        </a>
+      </div>
+      <div class="d-flex justify-content-between mt-2">
+        <div class="like-show ">
+          <font-awesome-icon :icon="['fas', 'thumbs-up']" />
+          <span class="ms-2">136</span>
+        </div>
+        <div class="comment-share-show ">
+          <font-awesome-icon :icon="['fas', 'comment']" class="ms-3" />
+          <span class="ms-2">136</span>
+        </div>
+      </div>
+      <hr />
+      <div class="d-flex justify-content-between ps-2 pe-2">
+        <a class="d-flex align-items-center nav-link active">
+          <font-awesome-icon :icon="['fas', 'thumbs-up']" />
+          <span class="ms-2">Like</span>
+        </a>
+        <a class="d-flex align-items-center nav-link" data-bs-toggle="modal" data-bs-target="#comment">
+          <font-awesome-icon :icon="['fas', 'comment']" />
+          <span class="ms-2">Comment</span>
+        </a>
+        <a class="d-flex align-items-center nav-link" data-bs-toggle="modal" data-bs-target="#share">
+          <font-awesome-icon :icon="['fas', 'share']" />
+          <span class="ms-2">Share</span>
+        </a>
+      </div>
     </div>
   </div>
 </template>
+
 <script>
-import { ref,onMounted } from 'vue';
+import { ref, onMounted, computed } from "vue";
 
 export default {
-  name: "post_card.",
-  props:['post'],
-  setup(){
+  name: "post_card",
+  props: ["post"],
+  setup(props, { emit }) {
     const expanded = ref(false);
     const textContainer = ref(null);
     const isOverflowing = ref(false);
@@ -60,15 +111,62 @@ export default {
       expanded.value = !expanded.value;
     };
 
+    const imageContainerClass = computed(() => {
+      const imageCount = props.post.images.length;
+      return imageCount > 1;
+    });
+
+    const getImageHeight = computed(() => {
+      const imageCount = props.post.images.length;
+      if (imageCount > 1) {
+        if (imageCount > 6) {
+          const divider = Math.ceil(imageCount / 3);
+          return 35 / Math.ceil(imageCount / divider);
+        }
+        return 35 / Math.ceil(imageCount / 2);
+      } else {
+        return 35;
+      }
+    });
+
+    const getImageWidth = (index) => {
+      const imageCount = props.post.images.length;
+      if (imageCount > 6) {
+        const divider = Math.ceil(imageCount / 3);
+        const imagecalc = imageCount - Math.floor(imageCount / divider) * divider;
+        if (index >= imageCount - imagecalc) {
+          if (imageCount % divider) {
+            return `calc(${100 / imagecalc}% - 10px)`;
+          }
+        }
+        return `calc(${100 / divider}% - 10px)`;
+      } else {
+        if (index === imageCount - 1) {
+          if (imageCount % 2 !== 0) {
+            return "100%";
+          }
+        }
+      }
+    };
+
+    const passImage = () => {
+      emit('passImage', props.post.images);
+    };
+
     return {
       expanded,
       textContainer,
       isOverflowing,
-      toggleText
+      toggleText,
+      getImageHeight,
+      imageContainerClass,
+      getImageWidth,
+      passImage,
     };
-  }
+  },
 };
 </script>
+
 <style scoped>
 .text-secondary {
   font-size: 0.9rem;
@@ -79,26 +177,39 @@ export default {
   -webkit-line-clamp: 8;
   overflow: hidden;
 }
-.single-image {
+.image-gallery {
   display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.single-image img {
-  max-width: 100%;
-  max-height: 100%;
-}
-
-.image-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 10px;
+  flex-wrap: wrap;
+}
+.image-gallery a {
+  width: 100%;
+}
+.image-gallery.multiple-image a {
+  width: calc(50% - 5px);
+}
+.image {
+  width: 100%;
+  object-fit: cover;
+  height: 100%;
+}
+.like-show svg,
+.comment-share-show svg,
+.nav-link svg {
+  font-size: 1.1rem;
+}
+.like-show,
+.comment-share-show{
+  color: #636c72;
+
+}
+.nav-link {
+  cursor: pointer;
+  color: #636c72;
+}
+.nav-link.active {
+  color: #24a0ed;
 }
 
-.image-grid img {
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-}
+
 </style>

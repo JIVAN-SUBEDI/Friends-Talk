@@ -3,9 +3,18 @@
         <navbarVue/>
         <div class="container-fluid bg-light custom-container">
             <div class="row">
-                <leftSection/>
-                <mainSection/>
-                <rightSection/>
+                <div class="col-md-3">
+
+                    <leftSection/>
+                </div>
+                <div class="col-md-6">
+
+                    <mainSection/>
+                </div>
+                <div class="col-md-3">
+
+                    <rightSection/>
+                </div>
             </div>
         </div>
     </div>

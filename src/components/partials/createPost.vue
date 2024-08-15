@@ -17,7 +17,7 @@
             data-bs-toggle="modal"
             data-bs-target="#addPost"
           >
-            What's on you mind, Jasmine?
+            What's on you mind, Jivan?
           </button>
         </div>
       </div>
@@ -79,7 +79,7 @@
                 width="50px"
                 height="50px"
               />
-              Jasmine James
+              Andrew tate
             </div>
             <span>&ThickSpace;is celebrating Birthday. </span>
           </div>
@@ -89,7 +89,7 @@
               class="custom-texarea"
               cols="30"
               rows="10"
-              placeholder="What's on your mind, Jasmine?"
+              placeholder="What's on your mind, Jivan?"
             ></textarea>
           </div>
           <div

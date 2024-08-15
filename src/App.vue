@@ -1,14 +1,14 @@
 <template>
-<home/>
+<profile/>
 </template>
 
 <script>
-import home from './components/home.vue';
+import profile from './components/profile.vue';
 
 export default {
   name: 'App',
   components: {
-    home
+    profile
   }
 }
 </script>
