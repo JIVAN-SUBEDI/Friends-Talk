@@ -1,14 +1,14 @@
 <template>
-<profile/>
+<login/>
 </template>
 
 <script>
-import profile from './components/profile.vue';
+import login from './components/Login.vue';
 
 export default {
   name: 'App',
   components: {
-    profile
+    login
   }
 }
 </script>
