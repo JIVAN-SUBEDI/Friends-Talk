@@ -14,16 +14,16 @@
         <div class="col-md-8">
           <div class="tab-content" id="myTabContent">
             <div class="tab-pane fade show active" id="overview" role="tabpanel">
-                <aboutOverview/>
+                <aboutOverviewView/>
             </div>
             <div class="tab-pane fade" id="work" role="tabpanel">
-              <aboutWork />
+              <aboutWorkView />
             </div>
             <div class="tab-pane fade" id="places" role="tabpanel">
-              <aboutPlaces />
+              <aboutPlacesView />
             </div>
             <div class="tab-pane fade" id="contact" role="tabpanel">
-              <aboutContact />
+                <aboutContactView/>
             </div>
   
          
@@ -35,15 +35,15 @@
 </template>
 
 <script>
+import aboutContactView from './aboutContactView.vue';
+import aboutPlacesView from './aboutPlacesView.vue';
+import aboutWorkView from './aboutWorkView.vue';
+import aboutOverviewView from './aboutOverviewView.vue';
 
-import aboutWork from './aboutWork.vue';
-import aboutPlaces from './aboutPlaces.vue';
-import aboutContact from './aboutContact.vue';
-import aboutOverview from './aboutOverview.vue';
 
 export default {
   name: "about_tab",
-  components:{aboutWork,aboutPlaces,aboutContact,aboutOverview},
+  components:{aboutContactView,aboutPlacesView,aboutWorkView,aboutOverviewView},
  
  
 };

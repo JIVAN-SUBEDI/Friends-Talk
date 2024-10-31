@@ -1,11 +1,35 @@
 <template>
   <div class="navbar ps-3 pe-3">
-    <div class="navbar-brand">Friends Talk</div>
-    <div class="search">
-      <span class="search-icon"
+    <router-link to="/" class="navbar-brand">Friends Talk</router-link>
+    <div class="autocomplete">
+
+      <div class="search">
+        <span class="search-icon"
         ><font-awesome-icon :icon="['fas', 'magnifying-glass']"
-      /></span>
-      <input type="text" placeholder="Search Friends" />
+        /></span>
+        <input type="text" placeholder="Search Friends" @keyup="searchFriend"  v-model="searchValue" />
+      </div>
+      <div class="list-group autocomplete-item bg-white rounded  shadow" v-if="friends.length || searchValue != ''">
+    
+        <router-link  class="d-flex gap-4 list-group-item-action list-group-item cursor-pointer " v-for="friend in friends" :key ="friend.id" :to="`/profile/view/${friend.id}`">
+            <img 
+            :src="friend.profile_image ? friend.profile_image : require('@/assets/img/default-profile.jpg')"
+             alt="">
+            <div class="d-flex flex-column justify-content-start">
+                <h6 class="">{{ friend.first_name }} {{ friend.last_name }}</h6>
+                <p class="text-small text-secondary">Friend</p>
+            </div>
+          </router-link>
+        <a class="d-flex gap-4 list-group-item-action list-group-item cursor-pointer align-items-center " @click="search" >
+            <div class="icon-box bg-light">
+              <font-awesome-icon :icon="['fas', 'magnifying-glass']"/>
+            </div>
+            <p>{{ searchValue }}</p>
+            
+          </a>
+
+</div>
+    
     </div>
     <ul>
       <li class="search-responsive">
@@ -74,7 +98,7 @@
             /></span>
             Give Feedback</a
           >
-          <a class="dropdown-item d-flex align-items-center" href="#">
+          <a class="dropdown-item d-flex align-items-center" @click="logout">
             <span class="navbar-items me-2"
               ><font-awesome-icon :icon="['fas', 'arrow-right-from-bracket']"
             /></span>
@@ -86,8 +110,53 @@
   </div>
 </template>
 <script>
+import axiosInstance from '@/axios';
+import { useStore } from 'vuex';
+import {ref,watch} from 'vue'
+import { useRouter } from 'vue-router';
 export default {
   name: "navbar_section",
+  setup(){
+    const store =useStore();
+    const router = useRouter();
+    const friends = ref([]);
+    
+    const searchValue = ref('');
+    const searchFriend = async(event)=>{
+      if(event.key == 'Enter'){
+        search();
+        
+      }else{
+        if (searchValue.value != '') {
+      await axiosInstance.get(`friends/search/${searchValue.value}/`).then(resp => {
+        friends.value = resp.data;
+      });
+    } else {
+      
+      friends.value = [];
+    }
+      }
+    }
+    const search =()=>{
+      router.push(`/search?query=${searchValue.value}`)
+      store.dispatch('performSearch', searchValue.value);
+      searchValue.value = ""
+    }
+    const logout = ()=>{
+      store.dispatch('logout')
+      
+    }
+    watch(
+      () => router.currentRoute.value.query.query,
+      (newQuery) => {
+        if (newQuery) {
+          store.dispatch("performSearch", newQuery);
+        }
+      },
+      { immediate: true }
+    );
+    return {logout,friends,searchFriend,searchValue,search}
+  }
 };
 </script>
 <style scoped>
@@ -211,5 +280,30 @@ ul li .navbar-items {
   .search {
     display: none;
   }
+}
+.autocomplete{
+  position:relative;
+}
+.autocomplete-item{
+  position:absolute;
+  z-index: 1000;
+  width:400px;
+  height: auto;
+  top: 3.3rem;
+  left:0;
+}
+.autocomplete-item img{
+  width: 50px;
+  height: 50px;
+  border-radius:50%;
+  object-fit: cover;
+}
+.icon-box{
+  width:50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
 }
 </style>

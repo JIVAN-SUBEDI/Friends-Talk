@@ -3,24 +3,23 @@
     <div class="card border-0 mt-3">
       <div class="card-body">
       
-            <a href="" class="d-flex nav-link align-items-center p-1" >
+            <router-link to="/profile" class="d-flex nav-link align-items-center p-1" >
               <img
-                src="https://media.gettyimages.com/id/609686580/photo/girl-in-st-petersburg.jpg?s=612x612&w=gi&k=20&c=8qAfrDx1GAn_-o6uDnaCMGt7wmUcJv6LSOvQlH_1-w4="
-                alt=""
+              :src="user.profile_image ? user.profile_image : require('@/assets/img/default-profile.jpg')"                alt=""
                 class="rounded-circle border me-2"
                 width="40px"
                 height="40px"
               />
-              <span class="ms-2">John Doe</span>
-            </a>
-            <a href="#" class="d-flex nav-link align-items-center  mt-2 " >
+              <span class="ms-2">{{ user.first_name +' ' +user.last_name}}</span>
+            </router-link>
+            <router-link to="/friends" class="d-flex nav-link align-items-center  mt-2 " >
                 <font-awesome-icon :icon="['fas', 'users']"  class="text-custom"/>
               <span class="ms-3">Friends</span>
-            </a>
-            <a href="#" class="d-flex nav-link align-items-center  mt-2 " >
+          </router-link>
+            <router-link to="/friends/request" class="d-flex nav-link align-items-center  mt-2 " >
                 <font-awesome-icon :icon="['fas', 'user-plus']" class="text-custom" />
               <span class="ms-3">Friends request</span>
-            </a>
+            </router-link>
             <a href="#" class="d-flex nav-link align-items-center  mt-2 " >
                 <div class="navbar-items">
 
@@ -50,8 +49,17 @@
   </div>
 </template>
 <script>
+
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 export default {
   name: "left_section",
+  setup(){
+    const store = useStore();
+    const user = computed(()=>store.state.user);
+    return{user}
+  }
+ 
 };
 </script>
 <style scoped>

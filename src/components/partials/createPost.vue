@@ -1,310 +1,452 @@
 <template>
-  <div class="card border-0 mt-3">
-    <div class="card-body">
-      <div class="row">
-        <div class="col d-flex justify-content-end">
-          <img
-            src="https://media.gettyimages.com/id/609686580/photo/girl-in-st-petersburg.jpg?s=612x612&w=gi&k=20&c=8qAfrDx1GAn_-o6uDnaCMGt7wmUcJv6LSOvQlH_1-w4="
-            alt=""
-            class="rounded-circle border"
-            width="60px"
-            height="60px"
-          />
+  <div>
+    <div class="card border-0 mt-3">
+      <div class="card-body">
+        <div class="row">
+          <div class="col d-flex justify-content-end">
+            <img
+              :src="
+                user.profile_image
+                  ? user.profile_image
+                  : require('@/assets/img/default-profile.jpg')
+              "
+              class="rounded-circle border"
+              width="60px"
+              height="60px"
+            />
+          </div>
+          <div class="col-10">
+            <button
+              class="create-post-btn"
+              data-bs-toggle="modal"
+              data-bs-target="#addPost"
+            >
+              What's on you mind, {{ user.first_name }}?
+            </button>
+          </div>
         </div>
-        <div class="col-10">
+        <hr />
+        <div class="d-flex justify-content-between">
+          <button class="btn btn-custom">
+            <font-awesome-icon
+              :icon="['fas', 'image']"
+              class="text-success me-2"
+            /><span> Photo</span>
+          </button>
           <button
-            class="create-post-btn"
+            class="btn btn-custom"
             data-bs-toggle="modal"
-            data-bs-target="#addPost"
+            data-bs-target="#feeling"
           >
-            What's on you mind, Jivan?
+            <font-awesome-icon
+              :icon="['fas', 'face-smile']"
+              class="text-warning me-2"
+            /><span> Feeling</span>
+          </button>
+          <button
+            class="btn btn-custom"
+            data-bs-toggle="modal"
+            data-bs-target="#activity"
+          >
+            <font-awesome-icon
+              :icon="['fas', 'person-running']"
+              class="text-secondary me-2"
+            /><span> Activity</span>
           </button>
         </div>
-      </div>
-      <hr />
-      <div class="d-flex justify-content-between">
-        <button class="btn btn-custom">
-          <font-awesome-icon
-            :icon="['fas', 'image']"
-            class="text-success me-2"
-          /><span> Photo</span>
-        </button>
-        <button
-          class="btn btn-custom"
-          data-bs-toggle="modal"
-          data-bs-target="#feeling"
-        >
-          <font-awesome-icon
-            :icon="['fas', 'face-smile']"
-            class="text-warning me-2"
-          /><span> Feeling</span>
-        </button>
-        <button class="btn btn-custom">
-          <font-awesome-icon
-            :icon="['fas', 'person-running']"
-            class="text-secondary me-2"
-          /><span> Activity</span>
-        </button>
       </div>
     </div>
-  </div>
-  <div
-    class="modal fade"
-    id="addPost"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="add post"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-header d-flex justify-content-between">
-          <h5 class="modal-title">Create Post</h5>
-          <button
-            type="button"
-            class="close btn"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
-            <font-awesome-icon :icon="['fas', 'xmark']" />
-          </button>
+    <div
+      class="modal fade"
+      id="addPost"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="add post"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header d-flex justify-content-between">
+            <h5 class="modal-title">Create Post</h5>
+            <button
+              type="button"
+              class="close btn"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            >
+              <font-awesome-icon :icon="['fas', 'xmark']" />
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="post-header d-flex align-items-center">
+              <div class="d-flex align-items-center">
+                <img
+                  :src="
+                    user.profile_image
+                      ? user.profile_image
+                      : require('@/assets/img/default-profile.jpg')
+                  "
+                  alt=""
+                  class="rounded-circle border me-2"
+                  width="50px"
+                  height="50px"
+                />
+                {{ user.first_name + " " + user.last_name }}
+              </div>
+              <span v-if="actions.activity && actions.subActivity"
+                >&ThickSpace;is {{ actions.activity }}
+                {{ actions.subActivity }}.
+              </span>
+              <span v-if="actions.feeling"
+                >&ThickSpace;is feeling {{ actions.feeling }}.
+              </span>
+            </div>
+            <div class="mt-3">
+              <textarea
+                style="resize: none"
+                class="custom-texarea"
+                cols="30"
+                rows="10"
+                placeholder="What's on your mind, Jivan?"
+                v-model="post.content"
+              ></textarea>
+              <div class="card rounded">
+                <div class="card-body">
+                  <div class="d-flex justify-content-end">
+                    <button class="btn">
+                      <font-awesome-icon :icon="['fas', 'xmark']" />
+                    </button>
+                  </div>
+                  <a
+                    class="bg-light btn d-flex justify-content-center align-items-center addBtn text-decoration-none text-black"
+                  >
+                    <font-awesome-icon
+                      :icon="['fas', 'image']"
+                      class="me-2"
+                      style="font-size: 1.2rem"
+                    />
+                    <span>Add photos</span>
+                  </a>
+                  <div
+                    class="image-gallery"
+                    :class="{ 'multiple-image': imageContainerClass }"
+                  >
+                    <a
+                      
+                      v-for="(image, index) in post.images"
+                      :key="image"
+                      :style="{
+                        height: getImageHeight + 'rem',
+                        width: getImageWidth(index),
+                      }"
+                    >
+                      <img :src="image" class="image" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="border d-flex justify-content-between align-items-center ps-2 pe-2 rounded"
+            >
+              <div>Add to your post</div>
+              <div>
+                <button class="btn btn-custom">
+                  <font-awesome-icon
+                    :icon="['fas', 'image']"
+                    class="text-success me-2"
+                  />
+                </button>
+
+                <button class="btn btn-custom">
+                  <font-awesome-icon
+                    :icon="['fas', 'face-smile']"
+                    class="text-warning me-2"
+                  />
+                </button>
+
+                <button class="btn btn-custom">
+                  <font-awesome-icon
+                    :icon="['fas', 'person-running']"
+                    class="text-secondary me-2"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer d-flex">
+            <button type="button" class="btn btn-primary post-btn">Post</button>
+          </div>
         </div>
-        <div class="modal-body">
-          <div class="post-header d-flex align-items-center">
-            <div class="d-flex align-items-center">
-              <img
-                src="https://media.gettyimages.com/id/609686580/photo/girl-in-st-petersburg.jpg?s=612x612&w=gi&k=20&c=8qAfrDx1GAn_-o6uDnaCMGt7wmUcJv6LSOvQlH_1-w4="
-                alt=""
-                class="rounded-circle border me-2"
-                width="50px"
-                height="50px"
+      </div>
+    </div>
+    <div
+      class="modal fade"
+      id="feeling"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="feelingmodal"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header d-flex justify-content-between">
+            <h5 class="modal-title">How are you feeling?</h5>
+            <button
+              type="button"
+              class="close btn"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            >
+              <font-awesome-icon :icon="['fas', 'xmark']" />
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="search">
+              <span class="search-icon"
+                ><font-awesome-icon :icon="['fas', 'magnifying-glass']"
+              /></span>
+              <input
+                type="text"
+                placeholder="Search..."
+                v-model="searchFeeling"
               />
-              Andrew tate
             </div>
-            <span>&ThickSpace;is celebrating Birthday. </span>
+            <div class="mt-3">
+              <div class="row">
+                <button
+                  class="btn btn-custom col-md-6 d-flex align-items-center"
+                  v-for="feeling in feeling"
+                  :key="feeling.id"
+                  @click="feelingClick(feeling)"
+                >
+                  <div class="emoji me-2">
+                    <span>{{ feeling.emoji }}</span>
+                  </div>
+                  <div>{{ feeling.name }}</div>
+                </button>
+                <div
+                  v-if="feeling.length === 0 && searchFeeling != ''"
+                  class="col-12"
+                >
+                  <div class="alert alert-info">
+                    No feeling found matching your search.
+                  </div>
+                </div>
+                <div
+                  v-if="feeling.length === 0 && searchFeeling == ''"
+                  class="col-12"
+                >
+                  <div class="alert alert-info">No feeling available.</div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="mt-3">
-            <textarea
-              style="resize: none"
-              class="custom-texarea"
-              cols="30"
-              rows="10"
-              placeholder="What's on your mind, Jivan?"
-            ></textarea>
-          </div>
-          <div
-            class="border d-flex justify-content-between align-items-center ps-2 pe-2 rounded"
-          >
-            <button class="btn btn-custom">
-              <font-awesome-icon
-                :icon="['fas', 'image']"
-                class="text-success me-2"
-              /><span> Photo</span>
-            </button>
-            <button class="btn btn-custom">
-              <font-awesome-icon
-                :icon="['fas', 'face-smile']"
-                class="text-warning me-2"
-              /><span> Feeling</span>
-            </button>
-            <button class="btn btn-custom">
-              <font-awesome-icon
-                :icon="['fas', 'person-running']"
-                class="text-secondary me-2"
-              /><span> Activity</span>
-            </button>
-          </div>
-        </div>
-        <div class="modal-footer d-flex">
-          <button type="button" class="btn btn-primary post-btn">Post</button>
         </div>
       </div>
     </div>
-  </div>
-  <div
-    class="modal fade"
-    id="feeling"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="feelingmodal"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-header d-flex justify-content-between">
-          <h5 class="modal-title">How are you feeling?</h5>
-          <button
-            type="button"
-            class="close btn"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
-            <font-awesome-icon :icon="['fas', 'xmark']" />
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="search">
-            <span class="search-icon"
-              ><font-awesome-icon :icon="['fas', 'magnifying-glass']"
-            /></span>
-            <input type="text" placeholder="Search..." />
+    <div
+      class="modal fade"
+      id="activity"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="activitymodal"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header d-flex justify-content-between">
+            <button
+              class="btn btn-custom"
+              v-if="subActivity != ''"
+              @click="backPress"
+            >
+              <font-awesome-icon :icon="['fas', 'arrow-left']" />
+            </button>
+            <h5 class="modal-title">What are you doing?</h5>
+            <button
+              type="button"
+              class="close btn"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            >
+              <font-awesome-icon :icon="['fas', 'xmark']" />
+            </button>
           </div>
-          <div class="mt-3">
-
-              <div class="row">
-                  <button class="btn btn-custom col d-flex align-items-center">
-                      <div class="emoji me-2"><span>&#128512;</span></div>
-                      <div>Happy</div>
-                  </button>
-                  <button class="btn btn-custom col d-flex align-items-center">
-                      <div class="emoji me-2"><span>&#128514;</span></div>
-                      <div>Joy</div>
-                  </button>
-                 
-                </div>
-              <div class="row">
-                  <button class="btn btn-custom col d-flex align-items-center">
-                      <div class="emoji me-2"><span>&#128512;</span></div>
-                      <div>Happy</div>
-                  </button>
-                  <button class="btn btn-custom col d-flex align-items-center">
-                      <div class="emoji me-2"><span>&#128514;</span></div>
-                      <div>Joy</div>
-                  </button>
-                 
-                </div>
-              <div class="row">
-                  <button class="btn btn-custom col d-flex align-items-center">
-                      <div class="emoji me-2"><span>&#128512;</span></div>
-                      <div>Happy</div>
-                  </button>
-                  <button class="btn btn-custom col d-flex align-items-center">
-                      <div class="emoji me-2"><span>&#128514;</span></div>
-                      <div>Joy</div>
-                  </button>
-                 
-                </div>
-              <div class="row">
-                  <button class="btn btn-custom col d-flex align-items-center">
-                      <div class="emoji me-2"><span>&#128512;</span></div>
-                      <div>Happy</div>
-                  </button>
-                  <button class="btn btn-custom col d-flex align-items-center">
-                      <div class="emoji me-2"><span>&#128514;</span></div>
-                      <div>Joy</div>
-                  </button>
-                 
-                </div>
-              <div class="row">
-                  <button class="btn btn-custom col d-flex align-items-center">
-                      <div class="emoji me-2"><span>&#128512;</span></div>
-                      <div>Happy</div>
-                  </button>
-                  <button class="btn btn-custom col d-flex align-items-center">
-                      <div class="emoji me-2"><span>&#128514;</span></div>
-                      <div>Joy</div>
-                  </button>
-                 
-                </div>
+          <div class="modal-body">
+            <div class="search" v-if="subActivity == ''">
+              <span class="search-icon"
+                ><font-awesome-icon :icon="['fas', 'magnifying-glass']"
+              /></span>
+              <input
+                type="text"
+                placeholder="Search..."
+                v-model="searchActivity"
+              />
             </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div
-    class="modal fade"
-    id="activity"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="activitymodal"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-header d-flex justify-content-between">
-          <h5 class="modal-title">How are you feeling?</h5>
-          <button
-            type="button"
-            class="close btn"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
-            <font-awesome-icon :icon="['fas', 'xmark']" />
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="search">
-            <span class="search-icon"
-              ><font-awesome-icon :icon="['fas', 'magnifying-glass']"
-            /></span>
-            <input type="text" placeholder="Search..." />
+            <div v-else>
+              <button class="btn btn-custom"></button>
+            </div>
+            <div class="mt-3">
+              <div class="row" v-if="subActivity == ''">
+                <button
+                  class="btn btn-custom col d-flex align-items-center"
+                  v-for="activity in activity"
+                  :key="activity.id"
+                  @click="activityClick(activity)"
+                >
+                  <div class="emoji me-2">
+                    <span>{{ activity.emoji }}</span>
+                  </div>
+                  <div>{{ activity.name }}</div>
+                </button>
+                <div
+                  v-if="activity.length === 0 && searchActivity != ''"
+                  class="col-12"
+                >
+                  <div class="alert alert-info">
+                    No activity found matching your search.
+                  </div>
+                </div>
+                <div
+                  v-if="activity.length === 0 && searchActivity == ''"
+                  class="col-12"
+                >
+                  <div class="alert alert-info">No activity available.</div>
+                </div>
+              </div>
+              <div class="row" v-else>
+                <button
+                  class="btn btn-custom col d-flex align-items-center"
+                  v-for="activity in subActivity"
+                  :key="activity.id"
+                  @click="subActivityClick(activity)"
+                >
+                  <div class="emoji me-2">
+                    <span>{{ activity.emoji }}</span>
+                  </div>
+                  <div>{{ activity.name }}</div>
+                </button>
+              </div>
+            </div>
           </div>
-          <div class="mt-3">
-
-              <div class="row">
-                  <button class="btn btn-custom col d-flex align-items-center">
-                      <div class="emoji me-2"><span>&#128512;</span></div>
-                      <div>Happy</div>
-                  </button>
-                  <button class="btn btn-custom col d-flex align-items-center">
-                      <div class="emoji me-2"><span>&#128514;</span></div>
-                      <div>Joy</div>
-                  </button>
-                 
-                </div>
-              <div class="row">
-                  <button class="btn btn-custom col d-flex align-items-center">
-                      <div class="emoji me-2"><span>&#128512;</span></div>
-                      <div>Happy</div>
-                  </button>
-                  <button class="btn btn-custom col d-flex align-items-center">
-                      <div class="emoji me-2"><span>&#128514;</span></div>
-                      <div>Joy</div>
-                  </button>
-                 
-                </div>
-              <div class="row">
-                  <button class="btn btn-custom col d-flex align-items-center">
-                      <div class="emoji me-2"><span>&#128512;</span></div>
-                      <div>Happy</div>
-                  </button>
-                  <button class="btn btn-custom col d-flex align-items-center">
-                      <div class="emoji me-2"><span>&#128514;</span></div>
-                      <div>Joy</div>
-                  </button>
-                 
-                </div>
-              <div class="row">
-                  <button class="btn btn-custom col d-flex align-items-center">
-                      <div class="emoji me-2"><span>&#128512;</span></div>
-                      <div>Happy</div>
-                  </button>
-                  <button class="btn btn-custom col d-flex align-items-center">
-                      <div class="emoji me-2"><span>&#128514;</span></div>
-                      <div>Joy</div>
-                  </button>
-                 
-                </div>
-              <div class="row">
-                  <button class="btn btn-custom col d-flex align-items-center">
-                      <div class="emoji me-2"><span>&#128512;</span></div>
-                      <div>Happy</div>
-                  </button>
-                  <button class="btn btn-custom col d-flex align-items-center">
-                      <div class="emoji me-2"><span>&#128514;</span></div>
-                      <div>Joy</div>
-                  </button>
-                 
-                </div>
-            </div>
         </div>
       </div>
     </div>
   </div>
 </template>
 <script>
+import { computed, onMounted, reactive, ref } from "vue";
+import { useStore } from "vuex";
+import { Modal } from "bootstrap";
+import axiosInstance from "@/axios";
+
 export default {
   name: "create_post",
+  setup() {
+    const store = useStore();
+    const user = computed(() => store.state.user);
+    const searchFeeling = ref("");
+    const searchActivity = ref("");
+    const subActivity = ref([]);
+    const createPostModal = ref(null);
+    const feelingModal = ref(null);
+    const activityModal = ref(null);
+    const friends = ref([]);
+    const post = reactive({
+      activity: "",
+      sub_activity: "",
+      feeling: "",
+      content: "",
+      images: "",
+    });
+    const actions = reactive({
+      feeling: "",
+      activity: "",
+      subActivity: "",
+    });
+    onMounted(async () => {
+      createPostModal.value = new Modal(document.querySelector("#addPost"));
+      feelingModal.value = new Modal(document.querySelector("#feeling"));
+      activityModal.value = new Modal(document.querySelector("#activity"));
+      await axiosInstance
+        .get("friends/")
+        .then((resp) => {
+          friends.value = resp.data;
+        })
+        .catch(() => {
+          console.error("some error occured while fetching friend!");
+        });
+    });
+    const feeling = computed(() => {
+      const feelingList = Array.isArray(store.state.feeling)
+        ? store.state.feeling
+        : [];
+
+      return feelingList.filter((feeling) => {
+        return feeling.name
+          .toLowerCase()
+          .includes(searchFeeling.value.toLowerCase());
+      });
+    });
+    const activity = computed(() => {
+      const activityList = Array.isArray(store.state.activity)
+        ? store.state.activity
+        : [];
+
+      return activityList.filter((activity) => {
+        return activity.name
+          .toLowerCase()
+          .includes(searchActivity.value.toLowerCase());
+      });
+    });
+    const activityClick = (data) => {
+      post.activity = data.id;
+      subActivity.value = data.subActivity;
+      actions.activity = data.name;
+      actions.feeling = "";
+      post.feeling = "";
+    };
+    const backPress = () => {
+      subActivity.value = [];
+      post.activity = "";
+      actions.activity = "";
+    };
+    const feelingClick = (data) => {
+      post.feeling = data.id;
+      actions.feeling = data.name;
+      actions.activity = "";
+      post.activity = "";
+      actions.subActivity = "";
+      post.sub_activity = "";
+      feelingModal.value.hide();
+      createPostModal.value.show();
+    };
+    const subActivityClick = (data) => {
+      post.sub_activity = data.id;
+      post.feeling = "";
+      actions.feeling = "";
+      actions.subActivity = data.name;
+      activityModal.value.hide();
+      createPostModal.value.show();
+    };
+
+    return {
+      user,
+      feeling,
+      activity,
+      searchFeeling,
+      searchActivity,
+      subActivity,
+      activityClick,
+      backPress,
+      post,
+      feelingClick,
+      subActivityClick,
+      actions,
+      friends,
+    };
+  },
 };
 </script>
 <style scoped>
@@ -318,6 +460,9 @@ img {
   border-radius: 25px;
   text-align: left;
   padding-left: 2rem;
+}
+.addBtn {
+  height: 100px;
 }
 .btn-custom {
   outline: none;
@@ -360,14 +505,30 @@ img {
   left: 0.8rem;
   color: #636c72;
 }
-.emoji{
-    height: 40px;
-    width: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 50%;
-    background: #f2f2f2;
-    font-size: 1.1rem;
+.emoji {
+  height: 40px;
+  width: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background: #f2f2f2;
+  font-size: 1.1rem;
+}
+.image-gallery {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.image-gallery a {
+  width: 100%;
+}
+.image-gallery.multiple-image a {
+  width: calc(50% - 5px);
+}
+.image {
+  width: 100%;
+  object-fit: cover;
+  height: 100%;
 }
 </style>

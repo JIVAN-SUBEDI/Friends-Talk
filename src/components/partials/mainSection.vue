@@ -1,9 +1,9 @@
 <template>
     <div class="pb-4">
-       <createPostVue/>
+       <createPostVue />
        <postVue  v-for="post in posts" :key="post.id" :post="post" @passImage="passImage"/>
+       <modalSectionVue :images="imageShow"/>
       </div>
-      <modalSectionVue :images="imageShow"/>
 </template>
 <script>
 import createPostVue from './createPost.vue'
@@ -13,6 +13,7 @@ import modalSectionVue from './modalSection.vue'
 export default {
     name:"main_section",
     components:{createPostVue,postVue,modalSectionVue},
+   
     setup(){
         const imageShow = ref();
         const posts = ref([
