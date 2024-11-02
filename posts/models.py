@@ -31,12 +31,7 @@ class Post(models.Model):
     # Text content
     content = models.TextField()
 
-    # Optional image and video fields
-    image = models.ImageField(upload_to='post_images/', null=True, blank=True)
-
-
-    # Likes and shares
-    # share_post = models.ForeignKey(post)
+  
     
     share_count = models.PositiveIntegerField(default=0)
 
@@ -46,5 +41,11 @@ class Post(models.Model):
 
     def __str__(self):
         return f"Post by {self.user.username} - {self.content[:30]}..."  # Short preview of content
+    
+class postImage(models.Model):
+    post = models.ForeignKey(Post,on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='post_images/', null=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
 
  

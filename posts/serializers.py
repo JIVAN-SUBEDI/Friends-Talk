@@ -17,4 +17,8 @@ class activitySerializer(serializers.ModelSerializer):
     def get_subActivity(self,obj):
         subActivity = sub_activity.objects.filter(activity=obj.id)
         return subActivitySerializer(subActivity,many=True).data
-        # return 'df'
+    
+class postSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = '__all__'
