@@ -27,7 +27,7 @@
         </div>
         <hr />
         <div class="d-flex justify-content-between">
-          <button class="btn btn-custom">
+          <button class="btn btn-custom" @click="photoBtnClick">
             <font-awesome-icon
               :icon="['fas', 'image']"
               class="text-success me-2"
@@ -110,15 +110,19 @@
                 placeholder="What's on your mind, Jivan?"
                 v-model="post.content"
               ></textarea>
-              <div class="card rounded">
+              <div
+                class="card rounded mb-2 mt-2"
+                v-if="images.length <= 0 && showAddPhotoField"
+              >
                 <div class="card-body">
                   <div class="d-flex justify-content-end">
-                    <button class="btn">
+                    <button class="btn" @click="showAddPhotoField = false">
                       <font-awesome-icon :icon="['fas', 'xmark']" />
                     </button>
                   </div>
                   <a
                     class="bg-light btn d-flex justify-content-center align-items-center addBtn text-decoration-none text-black"
+                    @click="uploadPhoto"
                   >
                     <font-awesome-icon
                       :icon="['fas', 'image']"
@@ -127,23 +131,44 @@
                     />
                     <span>Add photos</span>
                   </a>
-                  <div
-                    class="image-gallery"
-                    :class="{ 'multiple-image': imageContainerClass }"
-                  >
-                    <a
-                      
-                      v-for="(image, index) in post.images"
-                      :key="image"
-                      :style="{
-                        height: getImageHeight + 'rem',
-                        width: getImageWidth(index),
-                      }"
-                    >
-                      <img :src="image" class="image" />
-                    </a>
-                  </div>
                 </div>
+              </div>
+              <input
+                type="file"
+                id="uploadFileInput"
+                style="display: none"
+                @change="handleFileChange($event)"
+                accept="image/*"
+                multiple
+              />
+              <div
+                v-if="images.length"
+                class="image-gallery mb-2 mt-2"
+                :class="{ 'multiple-image': imageContainerClass }"
+              >
+                <button @click="uploadPhoto" class="btn bg-white shadow">
+                  <font-awesome-icon
+                    :icon="['fas', 'image']"
+                    class="me-2"
+                    style="font-size: 1.2rem"
+                  />
+                  <span>Add photos</span>
+                </button>
+                <a
+                  @click="passImage"
+                  v-for="(image, index) in images"
+                  :key="image"
+                  :style="{
+                    height: getImageHeight + 'rem',
+                    width: getImageWidth(index),
+                  }"
+                  class="image-container"
+                >
+                  <button class="text-black shadow" @click="removeImage(index)">
+                    <font-awesome-icon :icon="['fas', 'xmark']" />
+                  </button>
+                  <img :src="image.previewUrl" class="image" />
+                </a>
               </div>
             </div>
             <div
@@ -151,21 +176,32 @@
             >
               <div>Add to your post</div>
               <div>
-                <button class="btn btn-custom">
+                <button
+                  class="btn btn-custom"
+                  @click="showAddPhotoField = true"
+                >
                   <font-awesome-icon
                     :icon="['fas', 'image']"
                     class="text-success me-2"
                   />
                 </button>
 
-                <button class="btn btn-custom">
+                <button
+                  class="btn btn-custom"
+                  data-bs-toggle="modal"
+                  data-bs-target="#feeling"
+                >
                   <font-awesome-icon
                     :icon="['fas', 'face-smile']"
                     class="text-warning me-2"
                   />
                 </button>
 
-                <button class="btn btn-custom">
+                <button
+                  class="btn btn-custom"
+                  data-bs-toggle="modal"
+                  data-bs-target="#activity"
+                >
                   <font-awesome-icon
                     :icon="['fas', 'person-running']"
                     class="text-secondary me-2"
@@ -175,7 +211,7 @@
             </div>
           </div>
           <div class="modal-footer d-flex">
-            <button type="button" class="btn btn-primary post-btn">Post</button>
+            <button type="button" class="btn btn-primary post-btn" @click="submitPost">Post</button>
           </div>
         </div>
       </div>
@@ -333,6 +369,10 @@
         </div>
       </div>
     </div>
+    <div v-if="isLoading" class="loading-circle">
+      <div class="spinner"></div>
+      <p>Posting...</p>
+    </div>
   </div>
 </template>
 <script>
@@ -340,11 +380,13 @@ import { computed, onMounted, reactive, ref } from "vue";
 import { useStore } from "vuex";
 import { Modal } from "bootstrap";
 import axiosInstance from "@/axios";
+import { useToast } from "vue-toastification";
 
 export default {
   name: "create_post",
   setup() {
     const store = useStore();
+    const toast = useToast();
     const user = computed(() => store.state.user);
     const searchFeeling = ref("");
     const searchActivity = ref("");
@@ -353,19 +395,28 @@ export default {
     const feelingModal = ref(null);
     const activityModal = ref(null);
     const friends = ref([]);
+    const images = ref([]);
+    const isLoading = ref(false);
+    const showAddPhotoField = ref(false);
+    const imageContainerClass = computed(() => {
+      const imageCount = images.value.length;
+      return imageCount > 1;
+    });
     const post = reactive({
       activity: "",
       sub_activity: "",
       feeling: "",
       content: "",
-      images: "",
+      images: [],
     });
     const actions = reactive({
       feeling: "",
       activity: "",
       subActivity: "",
     });
+    const fileInput = ref(null);
     onMounted(async () => {
+      fileInput.value = document.querySelector("#uploadFileInput");
       createPostModal.value = new Modal(document.querySelector("#addPost"));
       feelingModal.value = new Modal(document.querySelector("#feeling"));
       activityModal.value = new Modal(document.querySelector("#activity"));
@@ -431,6 +482,92 @@ export default {
       createPostModal.value.show();
     };
 
+    const getImageHeight = computed(() => {
+      const imageCount = images.value.length;
+      if (imageCount > 1) {
+        if (imageCount > 6) {
+          const divider = Math.ceil(imageCount / 3);
+          return 30 / Math.ceil(imageCount / divider);
+        }
+        return 30 / Math.ceil(imageCount / 2);
+      } else {
+        return 30;
+      }
+    });
+
+    const getImageWidth = (index) => {
+      const imageCount = images.value.length;
+      if (imageCount > 6) {
+        const divider = Math.ceil(imageCount / 3);
+        const imagecalc =
+          imageCount - Math.floor(imageCount / divider) * divider;
+        if (index >= imageCount - imagecalc) {
+          if (imageCount % divider) {
+            return `calc(${100 / imagecalc}% - 10px)`;
+          }
+        }
+        return `calc(${100 / divider}% - 10px)`;
+      } else {
+        if (index === imageCount - 1) {
+          if (imageCount % 2 !== 0) {
+            return "100%";
+          }
+        }
+      }
+    };
+    const uploadPhoto = () => {
+      fileInput.value.click();
+    };
+    const handleFileChange = (e) => {
+      const files = e.target.files;
+      for (const file of files) {
+        // Check if the image is already in the images array by comparing name and size
+        const isDuplicate = images.value.some(
+          (image) =>
+            image.file.name === file.name && image.file.size === file.size
+        );
+
+        if (!isDuplicate) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            images.value.push({ file, previewUrl: e.target.result });
+          };
+          reader.readAsDataURL(file); // Convert file to base64 URL for preview
+        }
+      }
+    };
+
+    const removeImage = (index) => {
+      images.value.splice(index, 1); // Remove the selected image
+    };
+    const photoBtnClick = () => {
+      showAddPhotoField.value = true;
+      createPostModal.value.show();
+    };
+    const submitPost = async()=>{
+      images.value.map(item=>{
+        post.images.push(item)
+      });
+      isLoading.value = true;
+      await axiosInstance.post('post/add/',post).then(()=>{
+        isLoading.value=false;
+        images.value= [];
+        post.content = "";
+        post.activity = "";
+        post.sub_activity = "";
+        post.feeling = "";
+        actions.activity = "";
+        actions.subActivity = "";
+        actions.feeling = "";
+        post.images = []
+      }).catch(()=>{
+        isLoading.value=false;
+        toast.error('Some error occured while posting. Please try again later !',{timeout:5000})
+        // console.error('some error occured while adding post!')
+      })
+
+      // axiosInstance.post
+    }
     return {
       user,
       feeling,
@@ -445,6 +582,17 @@ export default {
       subActivityClick,
       actions,
       friends,
+      getImageHeight,
+      getImageWidth,
+      images,
+      imageContainerClass,
+      uploadPhoto,
+      handleFileChange,
+      removeImage,
+      showAddPhotoField,
+      photoBtnClick,
+      isLoading,
+      submitPost
     };
   },
 };
@@ -519,6 +667,7 @@ img {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  position: relative;
 }
 .image-gallery a {
   width: 100%;
@@ -530,5 +679,63 @@ img {
   width: 100%;
   object-fit: cover;
   height: 100%;
+}
+.image-container {
+  position: relative;
+  top: 0;
+  left: 0;
+}
+.image-container button {
+  position: absolute;
+  top: 4%;
+  right: 4%;
+  cursor: pointer;
+  border-radius: 50%;
+  background: white;
+
+  width: 20px;
+  height: 20px;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.8rem;
+}
+.image-container button:hover {
+  opacity: 0.8;
+}
+.image-gallery .btn {
+  position: absolute;
+  left: 4%;
+  top: 20px;
+  z-index: 100;
+}
+.loading-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 10;
+  flex-direction: column;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #4e9af1;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
