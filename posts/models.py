@@ -43,7 +43,7 @@ class Post(models.Model):
         return f"Post by {self.user.username} - {self.content[:30]}..."  # Short preview of content
     
 class postImage(models.Model):
-    post = models.ForeignKey(Post,on_delete=models.CASCADE)
+    post = models.ForeignKey(Post,related_name="images",on_delete=models.CASCADE)
     image = models.ImageField(upload_to='post_images/', null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 

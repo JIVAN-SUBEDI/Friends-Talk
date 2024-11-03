@@ -18,26 +18,26 @@ class addPostView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        data = request.data
-        user = request.user
-        data['user'] = user.id
-        
-        # Initialize the serializer with data
+        data = request.data.copy()
+        data['user'] = request.user.id
+
+        # Initialize the serializer with post data
         serializer = postSerializer(data=data)
-        
+
         if serializer.is_valid():
-            # Save post and retrieve the instance
+            # Save the post and retrieve the instance
             post_instance = serializer.save()
-            
-            # Handle multiple images
-            images = request.FILES.getlist('images')  # Use getlist to get multiple files
+
+            # Handle multiple images upload
+            images = request.FILES.getlist('images')
             for image in images:
-                # Create and save post images associated with the post instance
                 postImage.objects.create(post=post_instance, image=image)
+
+            # Refetch the post instance to include images, activities, and feelings in response
+            updated_post = Post.objects.get(id=post_instance.id)
+            serialized_post = postSerializer(updated_post, context={'request': request})
             
-            # Return serialized post data
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
+            return Response(serialized_post.data, status=status.HTTP_201_CREATED)
+
         # Return errors if serialization fails
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
