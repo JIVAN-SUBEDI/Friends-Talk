@@ -29,7 +29,7 @@ class Post(models.Model):
     sub_activity = models.ForeignKey(sub_activity, on_delete=models.SET_NULL, null=True, blank=True)
 
     # Text content
-    content = models.TextField()
+    content = models.TextField(null=True,blank=True)
 
   
     
@@ -43,7 +43,7 @@ class Post(models.Model):
         return f"Post by {self.user.username} - {self.content[:30]}..."  # Short preview of content
     
 class postImage(models.Model):
-    post = models.ForeignKey(Post,related_name="images",on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='post_images/', null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
