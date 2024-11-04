@@ -216,7 +216,7 @@ export default {
     // Initialize the first image when component is mounted
     onMounted(() => {
       if (props.images.length > 0) {
-        imageShow.value = props.images[0];
+        imageShow.value = props.images[0].image;
       }
     });
 
@@ -226,7 +226,7 @@ export default {
       (newImages) => {
         if (newImages.length > 0) {
           currentIndex.value = 0;
-          imageShow.value = newImages[0];
+          imageShow.value = newImages[0].image;
         }
         scale.value = 1; // Reset scale when changing the image
         position.value = { x: 0, y: 0 }; // Reset position
@@ -236,7 +236,7 @@ export default {
     const imageChangeRight = () => {
       if (currentIndex.value < props.images.length - 1) {
         currentIndex.value += 1;
-        imageShow.value = props.images[currentIndex.value];
+        imageShow.value = props.images[currentIndex.value].image;
         scale.value = 1; // Reset scale when changing the image
         position.value = { x: 0, y: 0 }; // Reset position
       }
@@ -244,7 +244,7 @@ export default {
     const imageChangeLeft = () => {
       if (currentIndex.value > 0) {
         currentIndex.value -= 1;
-        imageShow.value = props.images[currentIndex.value];
+        imageShow.value = props.images[currentIndex.value].image;
         scale.value = 1; // Reset scale when changing the image
         position.value = { x: 0, y: 0 }; // Reset position
       }

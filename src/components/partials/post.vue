@@ -4,8 +4,7 @@
       <div class="post-header d-flex align-items-center">
         <div class="d-flex align-items-center">
           <img
-            src="https://media.gettyimages.com/id/609686580/photo/girl-in-st-petersburg.jpg?s=612x612&w=gi&k=20&c=8qAfrDx1GAn_-o6uDnaCMGt7wmUcJv6LSOvQlH_1-w4="
-            alt=""
+          :src="post.user_details.profile_image ? post.user_details.profile_image : require('@/assets/img/default-profile.jpg')"            alt=""
             class="rounded-circle border me-2"
             width="50px"
             height="50px"
@@ -13,13 +12,12 @@
           <div class="d-flex flex-column">
             <span>
               {{
-                post.userDetails.firstName +
+                post.user_details.first_name +
                 " " +
-                post.userDetails.middleName +
-                " " +
-                post.userDetails.lastName
+               
+                post.user_details.last_name
               }}
-              <span>&ThickSpace;is {{ post.activity }} </span>
+              <!-- <span>&ThickSpace;is {{ post.activity }} </span> -->
             </span>
             <span class="text-secondary"> 24h ago </span>
           </div>
@@ -30,7 +28,7 @@
           :class="{ 'text-truncate-after-8': !expanded }"
           ref="textContainer"
         >
-          {{ post.desc }}
+          {{ post.content }}
         </div>
         <!-- Conditionally render the button based on text overflow -->
         <a v-if="isOverflowing" href="#" @click.prevent="toggleText">
@@ -47,13 +45,13 @@
           data-bs-toggle="modal"
           data-bs-target="#imageModal"
           v-for="(image, index) in post.images"
-          :key="image"
+          :key="image.id"
           :style="{
             height: getImageHeight + 'rem',
             width: getImageWidth(index),
           }"
         >
-          <img :src="image" class="image" />
+          <img :src="image.image" class="image" />
         </a>
       </div>
       <div class="d-flex justify-content-between mt-2">
@@ -86,6 +84,7 @@
 </template>
 
 <script>
+
 import { ref, onMounted, computed } from "vue";
 
 export default {
@@ -103,8 +102,9 @@ export default {
       isOverflowing.value = el.scrollHeight > maxHeight;
     };
 
-    onMounted(() => {
+    onMounted(async() => {
       checkOverflow();
+     
     });
 
     const toggleText = () => {

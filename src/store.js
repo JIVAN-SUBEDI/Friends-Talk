@@ -34,6 +34,9 @@ export default createStore({
     userProfile:[],
     feeling:[],
     activity:[],
+    posts: [],
+    page: 1,
+    loading: false,
   },
   mutations: {
     setTokens(state, { access_token, refresh_token }) {
@@ -163,7 +166,21 @@ export default createStore({
     },
     SET_ACTIVITY(state,data){
       state.activity = data
-    }
+    },
+    SET_POSTS(state, posts) {
+      state.posts = [...state.posts, ...posts]; // Append new posts to existing ones
+    },
+    INCREMENT_PAGE(state) {
+      state.page += 1;
+    },
+    SET_LOADING(state, loading) {
+      state.loading = loading;
+    },
+    RESET_POSTS(state) {
+      state.posts = [];
+      state.page = 1;
+      state.loading = false;
+    },
   },
   actions: {
     login({ commit }, { access_token, refresh_token }) {
@@ -218,7 +235,25 @@ export default createStore({
         commit('SET_ACTIVITY',resp.data)
       });
     }
-    }
+    },
+    async fetchPosts({ commit, state }) {
+      if (state.loading) return; // Prevent multiple requests if already loading
+      commit('SET_LOADING', true);
+      try {
+        const response = await axiosInstance.get('posts/', {
+          params: { page: state.page, page_size: 10 },
+        });
+        commit('SET_POSTS', response.data); // Add new posts to the state
+        commit('INCREMENT_PAGE'); // Move to the next page
+      } catch (error) {
+        console.error('Error fetching friend posts:', error);
+      } finally {
+        commit('SET_LOADING', false);
+      }
+    },
+    resetPosts({ commit }) {
+      commit('RESET_POSTS');
+    },
 
   },
   getters:{

@@ -544,14 +544,35 @@ export default {
       showAddPhotoField.value = true;
       createPostModal.value.show();
     };
-    const submitPost = async()=>{
-      images.value.map(item=>{
-        post.images.push(item)
-      });
-      isLoading.value = true;
-      await axiosInstance.post('post/add/',post).then(()=>{
-        isLoading.value=false;
-        images.value= [];
+    const submitPost = async () => {
+    // Create FormData instance
+    const formData = new FormData();
+
+    // Append other fields to FormData
+    formData.append('content', post.content);
+    formData.append('activity', post.activity);
+    formData.append('sub_activity', post.sub_activity);
+    formData.append('feeling', post.feeling);
+
+    // Append images to FormData with the same key
+    images.value.forEach((image) => {
+      console.log(image)
+        formData.append('images', image.file);  // 'images' should match the backend field name
+    });
+
+    isLoading.value = true;
+
+    try {
+        // Send FormData via axios with the appropriate headers
+        await axiosInstance.post('posts/', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+
+        
+        isLoading.value = false;
+        createPostModal.value.hide();
         post.content = "";
         post.activity = "";
         post.sub_activity = "";
@@ -559,15 +580,16 @@ export default {
         actions.activity = "";
         actions.subActivity = "";
         actions.feeling = "";
-        post.images = []
-      }).catch(()=>{
-        isLoading.value=false;
-        toast.error('Some error occured while posting. Please try again later !',{timeout:5000})
-        // console.error('some error occured while adding post!')
-      })
+        post.images = [];
+        images.value = [];
 
-      // axiosInstance.post
+    } catch (error) {
+        isLoading.value = false;
+        toast.error('An error occurred while submitting your post. Please try again shortly.', { timeout: 5000 });
+
     }
+};
+
     return {
       user,
       feeling,
@@ -720,7 +742,7 @@ img {
   height: 100vh;
   width: 100vw;
   background: rgba(255, 255, 255, 0.8);
-  z-index: 10;
+  z-index: 1060;
   flex-direction: column;
 }
 
