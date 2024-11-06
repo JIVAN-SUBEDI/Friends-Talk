@@ -18,14 +18,10 @@ class activityView(generics.ListAPIView):
     serializer_class = activitySerializer
     queryset = activity.objects.all()
 
-class FriendPostsPagination(PageNumberPagination):
-    page_size = 10  # Number of posts per page
-    page_size_query_param = 'page_size'
-    max_page_size = 100  # Maximum number of posts that can be requested
 
 class PostView(APIView):
     permission_classes = [IsAuthenticated] 
-    pagination_class = FriendPostsPagination
+
     def get(self,request):
         user = request.user
                # Use Q objects to filter friends, excluding the current user
@@ -43,34 +39,73 @@ class PostView(APIView):
         friend_ids = list(set(friend_ids))
 
         posts = Post.objects.filter(user__in=friend_ids).order_by('-created_at')
-        paginator = self.pagination_class()
+            # Apply Pagination
+        paginator = PageNumberPagination()
+        paginator.page_size = 10  # Set the page size here or globally in settings
         paginated_posts = paginator.paginate_queryset(posts, request)
-
-        return Response(postSerializer(paginated_posts, many=True, context={'request': request}).data, status=status.HTTP_200_OK)
+            # Serialize paginated data
+        serializer = postSerializer(paginated_posts, many=True, context={'request': request})
+        return paginator.get_paginated_response(serializer.data)
     def post(self, request):
-        
-        data = request.data
+        # Create a mutable copy of request data to modify it
+        data = request.data.copy()
         data['user'] = request.user.id
 
-        # Initialize the serializer with post data
-        serializer = postSerializer(data=data)
+        # Extract the images list from request.FILES before initializing the serializer
+        images = request.FILES.getlist('images')
+
+        # Initialize the serializer with the modified data (don't pass request.FILES directly to it)
+        serializer = postSerializer(data=data, context={'request': request})
 
         if serializer.is_valid():
             # Save the post and retrieve the instance
             post_instance = serializer.save()
 
             # Handle multiple images upload
-            images = request.FILES.getlist('images')
-       
-
             for image in images:
-                postImage.objects.create(post=post_instance, image=image)  # Create postImage directly with image
+                # Create postImage directly with each image file
+                postImage.objects.create(post=post_instance, image=image)
 
-            # Refetch the post instance to include images
+            # Refetch the post instance to include images (avoiding file serialization issues)
             updated_post = Post.objects.get(id=post_instance.id)
+            
+            # Serialize the post without including the raw file objects
             serialized_post = postSerializer(updated_post, context={'request': request})
 
             return Response(serialized_post.data, status=status.HTTP_201_CREATED)
 
         # Return errors if serialization fails
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class likeUnlikePost(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request, post_id):
+        post = Post.objects.get(id=post_id)
+        like, created = Like.objects.get_or_create(post=post, user=request.user)
+        
+        if not created:  # If the like already exists, it means the user wants to unlike
+            like.delete()
+            return Response({"message": "Post unliked",'liked':False}, status=status.HTTP_204_NO_CONTENT)
+        
+        return Response({"message": "Post liked",'liked':True}, status=status.HTTP_201_CREATED)
+    
+class CommentPostView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, post_id):
+        # post = Post.objects.get(id=post_id)
+        data = request.data.copy()
+        data['user'] = request.user.id
+        data['post'] = post_id
+        serializer = commentsSerializer(data=data)
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, comment_id):
+        comment = Comment.objects.get(id=comment_id, user=request.user)  # Ensure user can only delete their own comment
+        comment.delete()
+        return Response({"message": "Comment deleted"}, status=status.HTTP_204_NO_CONTENT)
