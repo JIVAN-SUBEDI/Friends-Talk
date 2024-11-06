@@ -34,8 +34,10 @@ export default createStore({
     userProfile:[],
     feeling:[],
     activity:[],
-    posts: [],
-    page: 1,
+    posts: {
+      results: [],
+      next: null,
+    },
     loading: false,
   },
   mutations: {
@@ -168,19 +170,60 @@ export default createStore({
       state.activity = data
     },
     SET_POSTS(state, posts) {
-      state.posts = [...state.posts, ...posts]; // Append new posts to existing ones
+      state.posts = posts;
     },
-    INCREMENT_PAGE(state) {
-      state.page += 1;
+    ADD_POST_SELF(state,post){
+      
+      state.posts.results.unshift(post);
     },
-    SET_LOADING(state, loading) {
-      state.loading = loading;
+    ADD_POSTS(state, morePosts) {
+      state.posts.results.push(...morePosts.results);
+      state.posts.next = morePosts.next;
+    },
+    SET_LOADING(state, isLoading) {
+      state.loading = isLoading;
     },
     RESET_POSTS(state) {
-      state.posts = [];
-      state.page = 1;
-      state.loading = false;
+      state.posts = { results: [], next: null };
     },
+    UPDATE_LIKE(state,{id,status}){
+      const post = state.posts.results.find(post=>post.id === id);
+      if(post){
+        post.liked = status;
+        if(status){
+          
+          post.likes_count+=1;
+        }else{
+          post.likes_count-=1;
+          
+        }
+        
+      }
+    },
+    UPDATE_COMMENTS(state, { id, data }) {
+ 
+      const post = state.posts.results.find(post => post.id === id);
+
+      // Check if the post exists
+      if (post) {
+        // Ensure the post has a comments array
+        if (!post.comments) {
+          post.comments = [];
+        }
+        
+        // Add the new comment to the beginning of the comments array
+        post.comments.unshift(data);
+      } else {
+        console.error(`Post with id ${id} not found.`);
+      }
+    },
+    DELETE_COMMENT(state, { id, cmtId }) {
+      const post = state.posts.results.find(post => post.id === id);
+      if (post) {
+        // Filter out the comment by commentId
+        post.comments = post.comments.filter(comment => comment.id !== cmtId);
+      }
+    }
   },
   actions: {
     login({ commit }, { access_token, refresh_token }) {
@@ -236,17 +279,26 @@ export default createStore({
       });
     }
     },
-    async fetchPosts({ commit, state }) {
-      if (state.loading) return; // Prevent multiple requests if already loading
+    async fetchPosts({ commit }) {
       commit('SET_LOADING', true);
       try {
-        const response = await axiosInstance.get('posts/', {
-          params: { page: state.page, page_size: 10 },
-        });
-        commit('SET_POSTS', response.data); // Add new posts to the state
-        commit('INCREMENT_PAGE'); // Move to the next page
+        const response = await axiosInstance.get('/posts'); // Replace with your API endpoint
+        commit('SET_POSTS', response.data);
       } catch (error) {
-        console.error('Error fetching friend posts:', error);
+        console.error("Error fetching posts:", error);
+      } finally {
+        commit('SET_LOADING', false);
+      }
+    },
+    async fetchMorePosts({ commit }, nextUrl) {
+      if (!nextUrl) return;
+      
+      commit('SET_LOADING', true);
+      try {
+        const response = await axiosInstance.get(nextUrl);
+        commit('ADD_POSTS', response.data);
+      } catch (error) {
+        console.error("Error fetching more posts:", error);
       } finally {
         commit('SET_LOADING', false);
       }

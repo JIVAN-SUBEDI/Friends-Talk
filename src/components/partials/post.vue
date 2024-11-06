@@ -17,9 +17,11 @@
                
                 post.user_details.last_name
               }}
-              <!-- <span>&ThickSpace;is {{ post.activity }} </span> -->
+              
+              <span v-if="post.feeling">&ThickSpace;Is {{ post.feeling_details.name }} {{ post.feeling_details.emoji }} </span>
+              <span v-if="post.activity && post.sub_activity">&ThickSpace;Is {{ post.activity_details.name }} {{ post.activity_details.subActivity[0].name }} {{ post.activity_details.subActivity[0].emoji }}</span>
             </span>
-            <span class="text-secondary"> 24h ago </span>
+            <span class="text-secondary"> {{ post.time_ago }} </span>
           </div>
         </div>
       </div>
@@ -57,20 +59,23 @@
       <div class="d-flex justify-content-between mt-2">
         <div class="like-show ">
           <font-awesome-icon :icon="['fas', 'thumbs-up']" />
-          <span class="ms-2">136</span>
+          <span class="ms-2">{{ post.likes_count }}</span>
         </div>
         <div class="comment-share-show ">
           <font-awesome-icon :icon="['fas', 'comment']" class="ms-3" />
+          <span class="ms-2">{{ post.comments.length }}</span>
+          <font-awesome-icon :icon="['fas', 'share']" class="ms-3" />
           <span class="ms-2">136</span>
+ 
         </div>
       </div>
       <hr />
       <div class="d-flex justify-content-between ps-2 pe-2">
-        <a class="d-flex align-items-center nav-link active">
+        <a class="d-flex align-items-center nav-link " :class="{'active':post.liked}" @click="likePost(post.id)">
           <font-awesome-icon :icon="['fas', 'thumbs-up']" />
           <span class="ms-2">Like</span>
         </a>
-        <a class="d-flex align-items-center nav-link" data-bs-toggle="modal" data-bs-target="#comment">
+        <a class="d-flex align-items-center nav-link" data-bs-toggle="modal" data-bs-target="#comment" @click="passComments">
           <font-awesome-icon :icon="['fas', 'comment']" />
           <span class="ms-2">Comment</span>
         </a>
@@ -85,12 +90,16 @@
 
 <script>
 
+import axiosInstance from "@/axios";
+
 import { ref, onMounted, computed } from "vue";
+import { useStore } from "vuex";
 
 export default {
   name: "post_card",
   props: ["post"],
   setup(props, { emit }) {
+    const store = useStore();
     const expanded = ref(false);
     const textContainer = ref(null);
     const isOverflowing = ref(false);
@@ -121,11 +130,11 @@ export default {
       if (imageCount > 1) {
         if (imageCount > 6) {
           const divider = Math.ceil(imageCount / 3);
-          return 35 / Math.ceil(imageCount / divider);
+          return 30 / Math.ceil(imageCount / divider);
         }
-        return 35 / Math.ceil(imageCount / 2);
+        return 30 / Math.ceil(imageCount / 2);
       } else {
-        return 35;
+        return 30;
       }
     });
 
@@ -152,6 +161,15 @@ export default {
     const passImage = () => {
       emit('passImage', props.post.images);
     };
+    const passComments = () => {
+      emit('passComment', props.post);
+    };
+    const likePost = async(id)=>{
+      await axiosInstance.post(`posts/${id}/like/`).then(resp=>{
+        const status = resp.data.liked
+        store.commit('UPDATE_LIKE',{id,status})
+      });
+    }
 
     return {
       expanded,
@@ -162,6 +180,8 @@ export default {
       imageContainerClass,
       getImageWidth,
       passImage,
+      likePost,
+      passComments
     };
   },
 };
@@ -181,6 +201,7 @@ export default {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+ 
 }
 .image-gallery a {
   width: 100%;

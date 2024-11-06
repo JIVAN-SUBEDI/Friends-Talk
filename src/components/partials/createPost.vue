@@ -564,7 +564,7 @@ export default {
 
     try {
         // Send FormData via axios with the appropriate headers
-        await axiosInstance.post('posts/', formData, {
+        const resp = await axiosInstance.post('posts/', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
@@ -582,6 +582,7 @@ export default {
         actions.feeling = "";
         post.images = [];
         images.value = [];
+        store.commit('ADD_POST_SELF',resp.data)
 
     } catch (error) {
         isLoading.value = false;

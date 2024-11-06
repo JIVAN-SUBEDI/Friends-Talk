@@ -1,4 +1,5 @@
 <template>
+  <div>
   <div class="modal fade" id="imageModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
@@ -83,26 +84,35 @@
           </button>
         </div>
         <div class="modal-body">
-          <div class="row">
+          <div class="comment-container">
+          <div class="row me-3 mt-3" v-for="comments in post.comments" :key='comments.id' >
             <a class="col-1 text-decoration-none ">
               <img
-                src="https://media.gettyimages.com/id/609686580/photo/girl-in-st-petersburg.jpg?s=612x612&w=gi&k=20&c=8qAfrDx1GAn_-o6uDnaCMGt7wmUcJv6LSOvQlH_1-w4="
-                alt=""
+              :src="comments.user_details.profile_image ? comments.user_details.profile_image : require('@/assets/img/default-profile.jpg')"                  alt=""
+             
                 class="rounded-circle border me-2"
                 width="40px"
                 height="40px"
               />
             </a>
             <div class="col bg-light rounded">
-                <p><b> Jasmine James</b></p>
-                <p> Lorem ipsum dolor sit amet consectetur adipisicing elit. Similique, blanditiis suscipit? Ea asperiores doloribus molestiae error amet veritatis, sunt, ex est ducimus aspernatur aut quae dicta alias aperiam iusto laborum culpa quia esse et blanditiis. Quod iure consequuntur delectus veniam?</p>
+                <div class="d-flex justify-content-between"><b> {{comments.user_details.first_name}} {{comments.user_details.last_name}}</b>
+                  <div class="dropdown" v-if="comments.user_details.id === user.id">
+                    <a class=" btn" data-bs-toggle="dropdown"><font-awesome-icon :icon="['fas', 'ellipsis-vertical']" /></a>
+                    <ul class="dropdown-menu" >
+                   
+                      <li><a class="dropdown-item" @click="deleteComment(comments.id)">Delete</a></li>
+                    </ul>
+                  </div>
+                </div>
+                <p> {{ comments.content }}</p>
             </div>
+          </div>
           </div>
           <div class=" mt-3 row">
               <div class="col-1">
                   <img
-                  src="https://media.gettyimages.com/id/609686580/photo/girl-in-st-petersburg.jpg?s=612x612&w=gi&k=20&c=8qAfrDx1GAn_-o6uDnaCMGt7wmUcJv6LSOvQlH_1-w4="
-                  alt=""
+                  :src="user.profile_image ? user.profile_image : require('@/assets/img/default-profile.jpg')"                  alt=""
                   class="rounded-circle border me-2"
                   width="40px"
                   height="40px"
@@ -113,7 +123,10 @@
                         <input
                         type="text"
                         class="form-control"
-                        placeholder="Comment as Jasmine James"
+                        :placeholder="`Comment as ${user.first_name} ${user.last_name}` "
+                        v-model="comment.content"
+                        @keyup.enter="postComment"
+
                         />
                     </div>
                 </div>
@@ -195,9 +208,12 @@
       </div>
     </div>
   </div>
+  </div>
 </template>
 <script>
-import { ref, onMounted, watch } from "vue";
+import axiosInstance from "@/axios";
+import { ref, onMounted, watch, reactive, computed } from "vue";
+import { useStore } from "vuex";
 
 export default {
   name: "modal_section",
@@ -206,15 +222,25 @@ export default {
       type: Array,
       default: () => [], // Provide a default empty array
     },
+    post:{
+      type:Object,
+      default:()=>{}
+    }
   },
   setup(props) {
+    const store = useStore();
+    const user = computed(()=>store.state.user)
     const currentIndex = ref(0);
     const imageShow = ref(null);
     const scale = ref(1); // Initial scale is 1 (normal size)
     const position = ref({ x: 0, y: 0 });
     const isDragging = ref(false);
+    const comment = reactive({
+      content:""
+    });
     // Initialize the first image when component is mounted
     onMounted(() => {
+      
       if (props.images.length > 0) {
         imageShow.value = props.images[0].image;
       }
@@ -293,6 +319,23 @@ export default {
         );
       }
     };
+    const postComment = async()=>{
+   
+      const id = props.post.id
+      await axiosInstance.post(`posts/${id}/comment/`,comment).then(resp=>{
+        const data = resp.data
+       comment.content = ""
+        store.commit('UPDATE_COMMENTS',{id,data})
+        
+      })
+    }
+    const deleteComment = async(cmtId)=>{
+      const id = props.post.id
+      await axiosInstance.delete(`comments/${cmtId}/`).then(()=>{
+        store.commit('DELETE_COMMENT',{id,cmtId})
+
+      })
+    }
 
     return {
       imageShow,
@@ -306,6 +349,10 @@ export default {
       endDrag,
       drag,
       position,
+      postComment,
+      comment,
+      user,
+      deleteComment
     };
   },
 };
@@ -410,5 +457,10 @@ export default {
 }
 .post-btn {
   width: 100%;
+}
+.comment-container{
+  max-height: 400px;
+  overflow-y: auto;
+
 }
 </style>
