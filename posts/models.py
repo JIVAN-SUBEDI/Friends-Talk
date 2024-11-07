@@ -30,17 +30,22 @@ class Post(models.Model):
 
     # Text content
     content = models.TextField(null=True,blank=True)
-
-  
-    
     share_count = models.PositiveIntegerField(default=0)
+    shared_post = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True, related_name='shares'
+    )
 
     # Timestamp for the post
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Post by {self.user.username} - {self.content[:30]}..."  # Short preview of content
+        if self.shared_post:
+            return f"{self.user.username} shared a post"
+        return f"{self.user.username}: {self.content[:30]}"
+
+    def is_shared(self):
+        return self.shared_post is not None
     
 class postImage(models.Model):
     post = models.ForeignKey(Post, related_name='images', on_delete=models.CASCADE)
