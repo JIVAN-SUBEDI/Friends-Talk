@@ -178,6 +178,7 @@
               rows="10"
               placeholder="Say something about this...."
             ></textarea>
+            <!-- <postVue  :post="sharedPost" /> -->
           </div>
           <div
             class="border d-flex justify-content-between align-items-center ps-2 pe-2 rounded"
@@ -214,7 +215,7 @@
 import axiosInstance from "@/axios";
 import { ref, onMounted, watch, reactive, computed } from "vue";
 import { useStore } from "vuex";
-
+// import postVue from "./post.vue";
 export default {
   name: "modal_section",
   props: {
@@ -225,8 +226,13 @@ export default {
     post:{
       type:Object,
       default:()=>{}
+    },
+    sharedPost:{
+      type:Object,
+      default:()=>{}
     }
   },
+  // components:{postVue},
   setup(props) {
     const store = useStore();
     const user = computed(()=>store.state.user)

@@ -170,6 +170,9 @@ export default {
         store.commit('UPDATE_LIKE',{id,status})
       });
     }
+    const sharePost = ()=>{
+      emit('sharePost',props.post)
+    }
 
     return {
       expanded,
@@ -181,7 +184,8 @@ export default {
       getImageWidth,
       passImage,
       likePost,
-      passComments
+      passComments,
+      sharePost
     };
   },
 };

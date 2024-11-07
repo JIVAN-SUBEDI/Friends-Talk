@@ -10,6 +10,7 @@
         :post="post" 
         @passImage="passImage" 
         @passComment ="passComment"
+        @sharePost="sharePost"
       />
     </div>
     <div v-else>
@@ -27,7 +28,7 @@
 </div>
 
     <!-- Modal Section for image -->
-    <modalSectionVue :images="imageShow" :post="commentShow"/>
+    <modalSectionVue :images="imageShow" :post="commentShow" :sharedPost="postShow"/>
   </div>
 </template>
 
@@ -48,11 +49,15 @@ export default {
     // Image modal
     const imageShow = ref([]);
     const commentShow = ref([]);
+    const postShow = ref({});
     const passImage = (images) => {
       imageShow.value = images;
     };
     const passComment = (comments)=>{
       commentShow.value = comments
+    }
+    const sharePost = (post)=>{
+      postShow.value = post
     }
     // Posts data and loading state from Vuex
     const posts = computed(() => store.state.posts ?? { results: [], next: null });
@@ -75,7 +80,7 @@ export default {
       }
     };
 
-    return { posts, passImage, imageShow, isLoading, showMore,passComment,commentShow };
+    return { posts, passImage, imageShow, isLoading, showMore,passComment,commentShow ,sharePost,postShow};
   }
 }
 </script>
