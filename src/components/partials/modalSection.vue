@@ -160,25 +160,30 @@
           <div class="post-header d-flex align-items-center">
             <div class="d-flex align-items-center">
               <img
-                src="https://media.gettyimages.com/id/609686580/photo/girl-in-st-petersburg.jpg?s=612x612&w=gi&k=20&c=8qAfrDx1GAn_-o6uDnaCMGt7wmUcJv6LSOvQlH_1-w4="
-                alt=""
+              :src="user.profile_image ? user.profile_image : require('@/assets/img/default-profile.jpg')"                  
+              alt=""
                 class="rounded-circle border me-2"
                 width="50px"
                 height="50px"
               />
-              Jasmine James
+              <span>
+
+                {{user.first_name}} {{user.last_name}} shared a post
+              </span>
+              
             </div>
             
           </div>
           <div class="mt-3">
+       
             <textarea
               style="resize: none"
               class="custom-texarea"
               cols="30"
               rows="10"
               placeholder="Say something about this...."
+              v-model="sharePost.content"
             ></textarea>
-            <!-- <postVue  :post="sharedPost" /> -->
           </div>
           <div
             class="border d-flex justify-content-between align-items-center ps-2 pe-2 rounded"
@@ -204,71 +209,115 @@
           </div>
         </div>
         <div class="modal-footer d-flex">
-          <button type="button" class="btn btn-primary post-btn">Share</button>
+          <button type="button" class="btn btn-primary post-btn" @click="share">Share</button>
         </div>
       </div>
     </div>
   </div>
+  <div v-if="isLoading" class="loading-circle">
+      <div class="spinner"></div>
+      <p>Posting...</p>
+    </div>
   </div>
 </template>
 <script>
 import axiosInstance from "@/axios";
 import { ref, onMounted, watch, reactive, computed } from "vue";
 import { useStore } from "vuex";
+import { useToast } from "vue-toastification";
+import { Modal } from "bootstrap";
 // import postVue from "./post.vue";
 export default {
   name: "modal_section",
   props: {
-    images: {
-      type: Array,
-      default: () => [], // Provide a default empty array
-    },
-    post:{
-      type:Object,
-      default:()=>{}
-    },
-    sharedPost:{
-      type:Object,
-      default:()=>{}
-    }
+  sharedPost: {
+    type: Number,
+    default: null, // Default to null
   },
+  post: {
+    type: Object,
+    default: () => ({}), // Default empty object
+  },
+},
   // components:{postVue},
   setup(props) {
+    const toast = useToast();
     const store = useStore();
+    const isLoading = ref(false);
     const user = computed(()=>store.state.user)
+    const images = computed(()=>store.state.images)
+    const imageIndex = computed(()=>store.state.imageIndex)
+    const sharePost = reactive({
+      content:"",
+      shared_post: null,
+    })
+    const shareModal = ref(null);
     const currentIndex = ref(0);
+
     const imageShow = ref(null);
     const scale = ref(1); // Initial scale is 1 (normal size)
     const position = ref({ x: 0, y: 0 });
     const isDragging = ref(false);
     const comment = reactive({
-      content:""
+      content:"",
+      shared_post:null
     });
     // Initialize the first image when component is mounted
     onMounted(() => {
-      
-      if (props.images.length > 0) {
-        imageShow.value = props.images[0].image;
+      sharePost.shared_post = props.sharedPost;
+      shareModal.value = new Modal(document.querySelector('#share'))
+      if (images.value.length > 0) {
+        imageShow.value = images.value[imageIndex.value].image;
       }
     });
 
     // Watch for changes in images prop and update the displayed image accordingly
     watch(
-      () => props.images,
-      (newImages) => {
-        if (newImages.length > 0) {
-          currentIndex.value = 0;
-          imageShow.value = newImages[0].image;
-        }
-        scale.value = 1; // Reset scale when changing the image
-        position.value = { x: 0, y: 0 }; // Reset position
-      }
-    );
+  () => images.value  ,
+  (newImages) => {
+    // Ensure `newImages` is an array and contains images
+    if (Array.isArray(newImages) && newImages.length > 0 && imageIndex.value < newImages.length) {
+      currentIndex.value = imageIndex.value;
+      imageShow.value = newImages[imageIndex.value].image;
+    } else {
+      // Reset `imageShow` in case of invalid `newImages` or `imageIndex`
+      imageShow.value = null;
+    }
+    
+    // Reset scale and position regardless of changes
+    scale.value = 1;
+    position.value = { x: 0, y: 0 };
+  }
+);
+watch(
+  imageIndex,
+  (newIndex) => {
+
+    // Check if `images` has valid entries and `newIndex` is within range
+    if (Array.isArray(images.value) && images.value.length > newIndex && newIndex >= 0) {
+      // Update the current index and displayed image
+      currentIndex.value = newIndex;
+     
+      imageShow.value = images.value[newIndex].image;
+    } else {
+      // Handle out-of-bounds or empty array gracefully
+      imageShow.value = null;
+    }
+    
+    // Reset scale and position for the new image
+    scale.value = 1;
+    position.value = { x: 0, y: 0 };
+  }
+);
+
+    watch(()=>props.sharedPost,(newPost)=>{
+      sharePost.shared_post = newPost
+    })
 
     const imageChangeRight = () => {
-      if (currentIndex.value < props.images.length - 1) {
+      if (currentIndex.value < images.value.length - 1) {
         currentIndex.value += 1;
-        imageShow.value = props.images[currentIndex.value].image;
+        imageShow.value = images.value[currentIndex.value].image;
         scale.value = 1; // Reset scale when changing the image
         position.value = { x: 0, y: 0 }; // Reset position
       }
@@ -276,7 +325,7 @@ export default {
     const imageChangeLeft = () => {
       if (currentIndex.value > 0) {
         currentIndex.value -= 1;
-        imageShow.value = props.images[currentIndex.value].image;
+        imageShow.value = images.value[currentIndex.value].image;
         scale.value = 1; // Reset scale when changing the image
         position.value = { x: 0, y: 0 }; // Reset position
       }
@@ -342,6 +391,18 @@ export default {
 
       })
     }
+    const share = async()=>{
+      isLoading.value = true
+      await axiosInstance.post('posts/', sharePost).then(resp=>{
+        store.commit('ADD_POST_SELF',resp.data)
+        isLoading.value = false
+        sharePost.content = ''
+        shareModal.value.hide();
+        
+      }).catch(()=>{
+        toast.error('An error occurred while sharing your post. Please try again shortly.', { timeout: 5000 });
+      });
+    }
 
     return {
       imageShow,
@@ -358,7 +419,10 @@ export default {
       postComment,
       comment,
       user,
-      deleteComment
+      deleteComment,
+      sharePost,
+      share,
+      images
     };
   },
 };
@@ -468,5 +532,33 @@ export default {
   max-height: 400px;
   overflow-y: auto;
 
+}
+.loading-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 1060;
+  flex-direction: column;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #4e9af1;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

@@ -39,6 +39,8 @@ export default createStore({
       next: null,
     },
     loading: false,
+    images:[],
+    imageIndex:0
   },
   mutations: {
     setTokens(state, { access_token, refresh_token }) {
@@ -223,6 +225,10 @@ export default createStore({
         // Filter out the comment by commentId
         post.comments = post.comments.filter(comment => comment.id !== cmtId);
       }
+    },
+    SET_IMAGES(state,{images,index}){
+      state.images = images
+      state.imageIndex = index
     }
   },
   actions: {

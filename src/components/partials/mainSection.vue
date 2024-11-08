@@ -58,6 +58,7 @@ export default {
     }
     const sharePost = (post)=>{
       postShow.value = post
+
     }
     // Posts data and loading state from Vuex
     const posts = computed(() => store.state.posts ?? { results: [], next: null });
