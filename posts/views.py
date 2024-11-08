@@ -60,6 +60,10 @@ class PostView(APIView):
         if serializer.is_valid():
             # Save the post and retrieve the instance
             post_instance = serializer.save()
+            if serializer.data['shared_post']:
+                update_share = Post.objects.get(id=serializer.data['shared_post'])
+                update_share.share_count += 1
+                update_share.save()
 
             # Handle multiple images upload
             for image in images:

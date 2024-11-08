@@ -25,15 +25,16 @@ class postImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = postImage
         fields = '__all__'
-# class likeSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model=Like
-#         fields=['post,user']
+
 class commentsSerializer(serializers.ModelSerializer):
     user_details=profileSerializer(source='user',read_only=True)
     class Meta:
         model = Comment
         fields=['id','post','user','user_details','content']
+class sharePostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Post
+        fields=['id,content,images,user_details']
 class postSerializer(serializers.ModelSerializer): 
     user_details = profileSerializer(source="user",read_only=True)
     activity_details = activitySerializer(source="activity", read_only=True)
@@ -44,6 +45,7 @@ class postSerializer(serializers.ModelSerializer):
     liked = serializers.SerializerMethodField(read_only=True)
     likes_count = serializers.SerializerMethodField(read_only=True)
     comments = commentsSerializer(many=True,read_only=True)
+    shared_post_details = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = Post
         fields = '__all__'
@@ -57,4 +59,8 @@ class postSerializer(serializers.ModelSerializer):
     def get_likes_count(self,obj):
         like = Like.objects.filter(post=obj.id).count()
         return like
-        
+    def get_shared_post_details(self, obj):
+        # Use recursion but limit depth by checking if it's a shared post of a shared post
+        if obj.shared_post:
+            return postSerializer(obj.shared_post, context=self.context).data
+        return None
