@@ -170,7 +170,7 @@ export default {
         return 30;
       }
     });
-
+//get image height
     const getImageWidth = (index) => {
       const imageCount = props.post.images.length;
       if (imageCount > 6) {
