@@ -31,6 +31,7 @@ class commentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields=['id','post','user','user_details','content']
+        #share post serializer
 class sharePostSerializer(serializers.ModelSerializer):
     class Meta:
         model=Post
