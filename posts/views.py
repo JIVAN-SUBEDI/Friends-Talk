@@ -113,3 +113,7 @@ class CommentPostView(APIView):
         comment = Comment.objects.get(id=comment_id, user=request.user)  # Ensure user can only delete their own comment
         comment.delete()
         return Response({"message": "Comment deleted"}, status=status.HTTP_204_NO_CONTENT)
+class getPost(generics.RetrieveAPIView):
+    serializer_class=postSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Post.objects.all()
