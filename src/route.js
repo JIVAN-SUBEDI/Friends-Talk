@@ -8,6 +8,7 @@ import friendsSearch from "./components/friendsSearch.vue";
 import profileView from "./components/profileView.vue";
 import friendRequest from "./components/friendRequest.vue";
 import friends from "./components/friends.vue";
+import postView from "./components/postView.vue";
 // import axiosInstance from "./axios";
 const routes = [
   {
@@ -84,6 +85,12 @@ const routes = [
     component: friends,
     meta: { requiresAuth: true },
   },
+  {
+    name:"postview",
+    path:"/post/:id",
+    component:postView,
+    meta: { requiresAuth: true },
+  }
 ]
 const router = createRouter({
   history: createWebHistory(),

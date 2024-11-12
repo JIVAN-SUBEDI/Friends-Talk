@@ -8,9 +8,6 @@
         v-for="post in posts.results" 
         :key="post.id" 
         :post="post" 
-        @passImage="passImage" 
-        @passComment ="passComment"
-        @sharePost="sharePost"
       />
     </div>
     <div v-else>
@@ -28,7 +25,7 @@
 </div>
 
     <!-- Modal Section for image -->
-    <modalSectionVue :images="imageShow" :post="commentShow" :sharedPost="postShow"/>
+    <modalSectionVue  />
   </div>
 </template>
 
@@ -36,7 +33,7 @@
 import createPostVue from './createPost.vue'
 import postVue from './post.vue'
 import modalSectionVue from './modalSection.vue'
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { onMounted, onBeforeUnmount, computed } from 'vue'
 import { useStore } from 'vuex'
 
 export default {
@@ -46,20 +43,8 @@ export default {
   setup() {
     const store = useStore();
     
-    // Image modal
-    const imageShow = ref([]);
-    const commentShow = ref([]);
-    const postShow = ref({});
-    const passImage = (images) => {
-      imageShow.value = images;
-    };
-    const passComment = (comments)=>{
-      commentShow.value = comments
-    }
-    const sharePost = (post)=>{
-      postShow.value = post
+ 
 
-    }
     // Posts data and loading state from Vuex
     const posts = computed(() => store.state.posts ?? { results: [], next: null });
     const isLoading = computed(() => store.state.loading);
@@ -81,7 +66,7 @@ export default {
       }
     };
 
-    return { posts, passImage, imageShow, isLoading, showMore,passComment,commentShow ,sharePost,postShow};
+    return { posts, isLoading, showMore};
   }
 }
 </script>

@@ -4,9 +4,18 @@
 
 <script>
 
-
+import { onMounted} from 'vue';
+import { useStore } from 'vuex';
 export default {
   name: 'App',
+  setup(){
+        const store = useStore();
+        onMounted(async()=>{
+            store.dispatch('loadProfile')
+            store.dispatch('fetchActiviyFeeling')
+        })
+    
+    }
 
 }
 </script>

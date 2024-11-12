@@ -2,7 +2,7 @@
   <div class="card mt-3 border-0">
     <div class="card-body">
       <div class="post-header d-flex align-items-center">
-        <div class="d-flex align-items-center">
+        <div class="d-flex align-items-center" v-if="post && post.user_details">
           <router-link :to="'/profile/view/'+ post.user_details.id" class="text-black linkpost">
           <img
             :src="
@@ -80,7 +80,7 @@
           <font-awesome-icon :icon="['fas', 'thumbs-up']" />
           <span class="ms-2">{{ post.likes_count }}</span>
         </div>
-        <div class="comment-share-show">
+        <div class="comment-share-show" v-if="post.comments">
           <font-awesome-icon :icon="['fas', 'comment']" class="ms-3" />
           <span class="ms-2">{{ post.comments.length }}</span>
           <font-awesome-icon :icon="['fas', 'share']" class="ms-3" />
@@ -92,7 +92,7 @@
         <a
           class="d-flex align-items-center nav-link"
           :class="{ active: post.liked }"
-          @click="likePost(post.id)"
+          @click="likePost"
         >
           <font-awesome-icon :icon="['fas', 'thumbs-up']" />
           <span class="ms-2">Like</span>
@@ -130,12 +130,11 @@ export default {
   name: "post_card",
   props: ["post"],
   components:{sharedPost},
-  setup(props, { emit }) {
+  setup(props) {
     const store = useStore();
     const expanded = ref(false);
     const textContainer = ref(null);
     const isOverflowing = ref(false);
-
 
     const checkOverflow = () => {
       const el = textContainer.value;
@@ -154,12 +153,12 @@ export default {
    
 
     const imageContainerClass = computed(() => {
-      const imageCount = props.post.images.length;
+      const imageCount = props.post.images && Array.isArray(props.post.images) ? props.post.images.length : 0;
       return imageCount > 1;
     });
 
     const getImageHeight = computed(() => {
-      const imageCount = props.post.images.length;
+      const imageCount = props.post.images && Array.isArray(props.post.images) ? props.post.images.length : 0;
       if (imageCount > 1) {
         if (imageCount > 6) {
           const divider = Math.ceil(imageCount / 3);
@@ -172,7 +171,7 @@ export default {
     });
 //get image height
     const getImageWidth = (index) => {
-      const imageCount = props.post.images.length;
+      const imageCount = props.post.images && Array.isArray(props.post.images) ? props.post.images.length : 0;
       if (imageCount > 6) {
         const divider = Math.ceil(imageCount / 3);
         const imagecalc =
@@ -195,21 +194,34 @@ export default {
 
     const passImage = (index) => {
 
-const images = props.post.images
-store.commit('SET_IMAGES',{images,index})
-};
+      const images = props.post.images
+      store.commit('SET_IMAGES',{images,index})
+      };
     const passComments = () => {
-      emit("passComment", props.post);
+
+      store.commit('SET_POST',props.post);
+      
     };
-    const likePost = async (id) => {
-      await axiosInstance.post(`posts/${id}/like/`).then((resp) => {
-        const status = resp.data.liked;
-        store.commit("UPDATE_LIKE", { id, status });
-      });
-    };
+    const likePost = async () => {
+  const id = props.post.id;
+
+  try {
+    const response = await axiosInstance.post(`posts/${id}/like/`);
+    const status = response.data.liked;
+
+    // Commit the status update to the Vuex store
+    store.commit('UPDATE_LIKE', { id, status });
+
+  } catch (error) {
+    console.error('Error liking post:', error);
+    // Optionally, you can notify the user if there's an error
+  }
+};
     const sharePost = () => {
-      emit("sharePost", props.post.id);
+  
+      store.commit('SET_SHARE',props.post.id);
     };
+ 
 
     return {
       expanded,
@@ -223,6 +235,7 @@ store.commit('SET_IMAGES',{images,index})
       likePost,
       passComments,
       sharePost,
+   
   
     };
   },

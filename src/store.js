@@ -5,6 +5,7 @@ import axios from 'axios';
 import axiosInstance from './axios';
 import router from './route';
 
+
 export default createStore({
   state: {
     access_token: null,
@@ -40,7 +41,9 @@ export default createStore({
     },
     loading: false,
     images:[],
-    imageIndex:0
+    imageIndex:0,
+    post:[],
+    share:null
   },
   mutations: {
     setTokens(state, { access_token, refresh_token }) {
@@ -229,6 +232,14 @@ export default createStore({
     SET_IMAGES(state,{images,index}){
       state.images = images
       state.imageIndex = index
+    },
+    SET_POST(state,post){
+      state.post =post;
+      
+    },
+    SET_SHARE(state,post){
+      state.share = post;
+      
     }
   },
   actions: {
@@ -312,6 +323,7 @@ export default createStore({
     resetPosts({ commit }) {
       commit('RESET_POSTS');
     },
+
 
   },
   getters:{

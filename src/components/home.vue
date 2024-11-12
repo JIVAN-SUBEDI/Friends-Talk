@@ -24,21 +24,13 @@ import navbarVue from './partials/navbar.vue'
 import leftSection from './partials/leftSection.vue';
 import rightSection from './partials/rightSection.vue';
 import mainSection from './partials/mainSection.vue';
-import { onMounted} from 'vue';
-import { useStore } from 'vuex';
+
 
 
 export default {
     name:"home_page",
     components:{navbarVue,leftSection,rightSection,mainSection},
-    setup(){
-        const store = useStore();
-        onMounted(async()=>{
-            store.dispatch('loadProfile')
-            store.dispatch('fetchActiviyFeeling')
-        })
-    
-    }
+  
 } 
 </script>
 <style scoped>

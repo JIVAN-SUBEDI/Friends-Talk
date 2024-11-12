@@ -200,7 +200,7 @@
                 class="text-secondary me-2"
               /><span> Groups</span>
             </button>
-            <button class="btn btn-custom1">
+            <button class="btn btn-custom1" @click="copyLink">
               <font-awesome-icon
                 :icon="['fas', 'copy']"
                 class="text-secondary me-2"
@@ -226,27 +226,19 @@ import { ref, onMounted, watch, reactive, computed } from "vue";
 import { useStore } from "vuex";
 import { useToast } from "vue-toastification";
 import { Modal } from "bootstrap";
-// import postVue from "./post.vue";
+
 export default {
   name: "modal_section",
-  props: {
-  sharedPost: {
-    type: Number,
-    default: null, // Default to null
-  },
-  post: {
-    type: Object,
-    default: () => ({}), // Default empty object
-  },
-},
-  // components:{postVue},
-  setup(props) {
+
+  setup() {
     const toast = useToast();
     const store = useStore();
     const isLoading = ref(false);
     const user = computed(()=>store.state.user)
+    const sharedPost = computed(()=>store.state.share)
     const images = computed(()=>store.state.images)
-    const imageIndex = computed(()=>store.state.imageIndex)
+    const imageIndex = computed(()=>store.state.imageIndex);
+    const post = computed(()=>store.state.post);
     const sharePost = reactive({
       content:"",
       shared_post: null,
@@ -264,11 +256,12 @@ export default {
     });
     // Initialize the first image when component is mounted
     onMounted(() => {
-      sharePost.shared_post = props.sharedPost;
+      sharePost.shared_post = sharedPost.value
       shareModal.value = new Modal(document.querySelector('#share'))
       if (images.value.length > 0) {
         imageShow.value = images.value[imageIndex.value].image;
       }
+      
     });
 
     // Watch for changes in images prop and update the displayed image accordingly
@@ -310,7 +303,7 @@ watch(
   }
 );
 
-    watch(()=>props.sharedPost,(newPost)=>{
+    watch(()=>sharedPost.value,(newPost)=>{
       sharePost.shared_post = newPost
     })
 
@@ -376,7 +369,7 @@ watch(
     };
     const postComment = async()=>{
    
-      const id = props.post.id
+      const id = post.value.id
       await axiosInstance.post(`posts/${id}/comment/`,comment).then(resp=>{
         const data = resp.data
        comment.content = ""
@@ -385,7 +378,7 @@ watch(
       })
     }
     const deleteComment = async(cmtId)=>{
-      const id = props.post.id
+      const id = post.value.id
       await axiosInstance.delete(`comments/${cmtId}/`).then(()=>{
         store.commit('DELETE_COMMENT',{id,cmtId})
 
@@ -393,6 +386,7 @@ watch(
     }
     const share = async()=>{
       isLoading.value = true
+   
       await axiosInstance.post('posts/', sharePost).then(resp=>{
         store.commit('ADD_POST_SELF',resp.data)
         isLoading.value = false
@@ -402,6 +396,18 @@ watch(
       }).catch(()=>{
         toast.error('An error occurred while sharing your post. Please try again shortly.', { timeout: 5000 });
       });
+     
+    }
+    const copyLink = () =>{
+      const link =  window.location.origin +'/post/'+ sharedPost.value
+      navigator.clipboard.writeText(link)
+        .then(() => {
+          toast.success('Link copied to clipboard.',{timeout:5000})
+        })
+        .catch(() => {
+          toast.error('Failed to copy text.',{timeout:5000})
+       
+        });
     }
 
     return {
@@ -422,7 +428,10 @@ watch(
       deleteComment,
       sharePost,
       share,
-      images
+      images,
+      post,
+      sharedPost,
+      copyLink
     };
   },
 };
